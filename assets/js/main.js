@@ -1,622 +1,409 @@
 /*
-	Parallelism by HTML5 UP
+	Dimension by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
 
-var parallelism = (function($) { var _ = {
+(function($) {
 
-	/******************************/
-	/* Properties                 */
-	/******************************/
+	skel.breakpoints({
+		xlarge:		'(max-width: 1680px)',
+		large:		'(max-width: 1280px)',
+		medium:		'(max-width: 980px)',
+		small:		'(max-width: 736px)',
+		xsmall:		'(max-width: 480px)',
+		xxsmall:	'(max-width: 360px)'
+	});
 
-		// Settings
-			settings: {
+	$(function() {
 
-				// Popup overlay color.
-					popupOverlayColor: '#1a1f2c',
+		var	$window = $(window),
+			$body = $('body'),
+			$wrapper = $('#wrapper'),
+			$header = $('#header'),
+			$footer = $('#footer'),
+			$main = $('#main'),
+			$main_articles = $main.children('article');
 
-				// Popup overlay opacity.
-					popupOverlayOpacity: 0.75,
+		// Disable animations/transitions until the page has loaded.
+			$body.addClass('is-loading');
 
-				// Mobile only.
+			$window.on('load', function() {
+				window.setTimeout(function() {
+					$body.removeClass('is-loading');
+				}, 100);
+			});
 
-					// If true, mobile mode will get some automatic styling.
-						autoStyleMobile: true,
+		// Fix: Placeholder polyfill.
+			$('form').placeholder();
 
-				// Desktop only.
+		// Fix: Flexbox min-height bug on IE.
+			if (skel.vars.IEVersion < 12) {
 
-					// If true, reel will be vertically centered.
-						centerVertically: true,
+				var flexboxFixTimeoutId;
 
-					// Delay (in ms) before showing the reel.
-						introDelay: 600,
+				$window.on('resize.flexbox-fix', function() {
 
-					// Speed (in ms) at which to fade in reel.
-						introSpeed: 750,
+					clearTimeout(flexboxFixTimeoutId);
 
-					// Height (in px) of items.
-						itemHeight: 230,
+					flexboxFixTimeoutId = setTimeout(function() {
 
-					// Default width (in px) of width.
-						itemWidth: 300,
+						if ($wrapper.prop('scrollHeight') > $window.height())
+							$wrapper.css('height', 'auto');
+						else
+							$wrapper.css('height', '100vh');
 
-					// Margin (in px) to preserve at the bottom of the viewport.
-						marginBottom: 0,
+					}, 250);
 
-					// Margin (in px) to preserve at the top of the viewport.
-						marginTop: 0,
+				}).triggerHandler('resize.flexbox-fix');
 
-					// Nudge the reel by this value (in px) after it's been vertically centered.
-						verticalNudge: -50,
+			}
 
-					// Maximum number of rows.
-						maxRows: 3,
+		// Nav.
+			var $nav = $header.children('nav'),
+				$nav_li = $nav.find('li');
 
-					// Minimum number of rows.
-						minRows: 1,
+			// Add "middle" alignment classes if we're dealing with an even number of items.
+				if ($nav_li.length % 2 == 0) {
 
-					// Padding (in px) between items (0 = no padding).
-						padding: 5,
+					$nav.addClass('use-middle');
+					$nav_li.eq( ($nav_li.length / 2) ).addClass('is-middle');
 
-					// Padding color.
-						paddingColor: '#fff',
+				}
 
-					// If true, reel scroll will reset on page refresh.
-						resetScroll: true,
+		// Main.
+			var	delay = 325,
+				locked = false;
 
-					// Scales the scroll delta (1 = normal, 2 = double, 0.5 = half, etc.).
-						scrollFactor: 1,
+			// Methods.
+				$main._show = function(id, initial) {
 
-					// Scroll amount when using keys.
-						scrollKeyAmount: 50,
+					var $article = $main_articles.filter('#' + id);
 
-					// Determines where scrollwheel events should be captured ('window' or 'reel').
-						scrollWheelTarget: 'window',
+					// No such article? Bail.
+						if ($article.length == 0)
+							return;
 
-					// Scroll amount when using scroll zones.
-						scrollZoneAmount: 10,
+					// Handle lock.
 
-					// Time (in ms) to wait between scrolls when the cursor is in a scroll zone.
-						scrollZoneDelay: 20,
+						// Already locked? Speed through "show" steps w/o delays.
+							if (locked || (typeof initial != 'undefined' && initial === true)) {
 
-					// Width of scroll zones.
-						scrollZoneWidth: 40,
+								// Mark as switching.
+									$body.addClass('is-switching');
 
-					// Delay (in ms) before showing thumbnails.
-						thumbDelay: 1200,
+								// Mark as visible.
+									$body.addClass('is-article-visible');
 
-					// Spread (in ms) to randomly stagger thumbnails (0 = don't stagger).
-						thumbDelaySpread: 1500,
+								// Deactivate all articles (just in case one's already active).
+									$main_articles.removeClass('active');
 
-					// Speed (in ms) at which to fade in thumbnails.
-						thumbSpeed: 750,
+								// Hide header, footer.
+									$header.hide();
+									$footer.hide();
 
-					// If true, page will blur slightly when the popup is displayed.
-						useBlurFilter: true,
+								// Show main, article.
+									$main.show();
+									$article.show();
 
-					// If true, the left/right arrow keys will scroll the reel.
-						useScrollKeys: true,
+								// Activate article.
+									$article.addClass('active');
 
-					// If true, moving the cursor to the leftmost/rightmost edges of the reel will scroll it.
-						useScrollZones: true
+								// Unlock.
+									locked = false;
 
-			},
+								// Unmark as switching.
+									setTimeout(function() {
+										$body.removeClass('is-switching');
+									}, (initial ? 1000 : 0));
 
-		// Touch device?
-			isTouch: false,
-
-		// IE version.
-			IEVersion: 99,
-
-		// Object cache.
-			objects: {},
-
-	/******************************/
-	/* Methods                    */
-	/******************************/
-
-		// Initializes desktop mode.
-			initDesktop: function() {
-
-				var $SZ = $(''), $SZLeft, $SZRight;
-
-				var	windowHeight = _.objects.window.height() - _.settings.marginTop - _.settings.marginBottom,
-					windowWidth = _.objects.window.width(),
-					itemHeight = _.settings.itemHeight,
-					itemCount = _.objects.items.length,
-					itemsWidth = 0,
-					rows = 0,
-					rowWidth,
-					SZIntervalId;
-
-				// Window.
-					_.objects.window._parallelism_update = function() {
-						var i, j, x, y, t;
-
-						// Calculate number of rows we can fit on the screen.
-							rows = Math.min(Math.max(Math.floor(windowHeight / itemHeight) - 1, 1), _.settings.maxRows);
-
-						// Reduce row count if we have more than we need.
-							while ( rows > _.settings.minRows && (itemsWidth / rows) < windowWidth )
-								rows--;
-
-						// Get average row width.
-							rowWidth = Math.ceil( (itemsWidth / rows) * 1.1 );
-
-						// Resize items.
-							var w = 0, iw;
-							var rowStart = 0, rowPos = 0, rowEnded = false;
-
-							_.objects.items.each(function(i) {
-								var $item = $(this);
-
-								iw = $item.data('width');
-
-								// Determine end row conditions.
-
-									// Current item would push us past the row width.
-										if (w + iw >= rowWidth) {
-
-											rowEnded = true;
-											rowEnd = i - 1;
-
-										}
-
-									// Current item is the last item.
-										else if (i + 1 >= itemCount) {
-
-											w += iw;
-											rowEnded = true;
-											rowEnd = i;
-
-										}
-
-								// Did the row end?
-									if (rowEnded) {
-
-										var pt = 0;
-
-										// Rescale the row's items.
-											_.objects.items.slice(rowStart, rowEnd + 1).each(function(j) {
-												var $item = $(this);
-												var p = (($item.data('width') / w) * 100.00);
-
-												if (pt + p > 100.00
-												||	( (rowStart + j) == rowEnd && pt + p < 100.00))
-													 p = 100.00 - pt;
-
-												$item.css('width', p + '%');
-												pt += p;
-
-											});
-
-										w = 0;
-										rowStart = i;
-										rowPos++;
-										rowEnded = false;
-
-									}
-
-								w += iw;
-
-							});
-
-						// Resize reel.
-							_.objects.reel
-								.css('height', (itemHeight * rows) + (_.settings.padding * 2))
-								.css('width', rowWidth);
-
-						// Reposition main (if applicable).
-							_.objects.main
-								.css('height', (itemHeight * rows) + (_.settings.padding * 2));
-
-							if (_.settings.centerVertically)
-								_.objects.main
-									.css('top', '50%')
-									.css('margin-top', (-1 * (_.objects.main.outerHeight() / 2)) + _.settings.verticalNudge);
-
-						// Resize/reposition SZs.
-							window.setTimeout(function() {
-
-								$SZ
-									.css('height', _.objects.main.outerHeight())
-									.css('top', _.objects.main.offset().top);
-
-							}, _.settings.introDelay);
-
-					};
-
-					_.objects.window.resize(function() {
-
-						// Update window dimensions.
-							windowWidth = _.objects.window.width();
-							windowHeight = _.objects.window.height() - _.settings.marginTop - _.settings.marginBottom;
-
-						// Row count changed? Re-update.
-							if (Math.max(Math.floor(windowHeight / itemHeight) - 1, 1) != rows)
-								_.objects.window._parallelism_update();
-
-						// Update scroll zones.
-							$SZ._parallelism_update();
-
-					});
-
-				// Reel.
-					_.objects.reel
-						.css('overflow-y', 'hidden')
-						.css('margin', '0 auto')
-						.css('border', 'solid ' + _.settings.padding + 'px ' + _.settings.paddingColor)
-						.css('box-shadow', '0 0 0 ' + _.settings.padding + 'px ' + _.settings.paddingColor);
-
-					if (_.IEVersion < 9)
-						_.objects.reel.show();
-					else if (_.IEVersion < 10) {
-
-						_.objects.reel.fadeTo(0,0.0001);
-
-						window.setTimeout(function() {
-							_.objects.reel.fadeTo(_.settings.introSpeed, 1);
-						}, _.settings.introDelay);
-
-					}
-					else {
-
-						_.objects.reel.css('opacity', 0);
-
-						window.setTimeout(function() {
-							_.objects.reel
-								.h5u_xcss('transition', 'opacity ' + (_.settings.introSpeed / 1000.00) + 's ease-in-out')
-								.css('opacity', 1);
-						}, _.settings.introDelay);
-
-					}
-
-				// Items.
-					_.objects.items
-						.css('box-shadow', '0px 0px 0px ' + _.settings.padding + 'px ' + _.settings.paddingColor)
-						.css('border', 'solid ' + _.settings.padding + 'px ' + _.settings.paddingColor);
-
-					_.objects.items.each(function(i) {
-
-						var	$item = $(this), $img = $item.find('img');
-						var w, h;
-
-						w = parseInt($item.data('width'));
-
-						if (!w)
-							w = _.settings.itemWidth;
-
-						h = _.settings.itemHeight;
-
-						// Add to total width.
-							itemsWidth += w;
-
-						// Item.
-							$item
-								.css('position', 'relative')
-								.css('width', w)
-								.css('height', h);
-
-						// Image?
-							if ($img.length > 0) {
-
-								var $itemInner, $h2;
-
-								// img.
-									$img
-										.css('position', 'absolute')
-										.css('width', '100%')
-										.css('height', 'auto')
-										.css('min-height', '100%')
-										.css('top', 0)
-										.css('left', 0)
-										.attr('title', $item.text());
-
-								// inner (for fade effect).
-									$item.wrapInner('<div class="inner" />');
-									$itemInner = $item.children('.inner');
-									$itemInner
-										.css('position', 'relative')
-										.css('display', 'block')
-										.css('-webkit-backface-visibility', 'hidden')
-										.css('width', '100%')
-										.css('height', '100%');
-
-									if (_.IEVersion < 9)
-										$itemInner.show();
-									else if (_.IEVersion < 10) {
-
-										$itemInner.hide();
-
-										window.setTimeout(function() {
-											$itemInner.fadeIn(_.settings.thumbSpeed);
-										}, _.settings.thumbDelay + Math.floor(Math.random() * _.settings.thumbDelaySpread));
-
-									}
-									else {
-
-										$itemInner.css('opacity', 0);
-
-										$itemInner.h5u_xcss('transition', 'opacity ' + (_.settings.thumbSpeed / 1000.00) + 's ease-in-out');
-
-										window.setTimeout(function() {
-											$itemInner.css('opacity', 1);
-										}, _.settings.thumbDelay + Math.floor(Math.random() * _.settings.thumbDelaySpread));
-
-									}
-
-									$img.attr('src', $img.attr('src'));
+								return;
 
 							}
 
-					});
+						// Lock.
+							locked = true;
 
-				// Main.
-					if (_.isTouch)
-						_.objects.main
-							.css('overflow-x', 'auto')
-							.css('overflow-y', 'hidden')
-							.h5u_xcss('overflow-scrolling', 'touch');
-					else
-						_.objects.main.css('overflow', 'hidden');
+					// Article already visible? Just swap articles.
+						if ($body.hasClass('is-article-visible')) {
 
-				// Scrolling.
+							// Deactivate current article.
+								var $currentArticle = $main_articles.filter('.active');
 
-					// Scroll Wheel.
+								$currentArticle.removeClass('active');
 
-						if (_.IEVersion < 9)
-							_.objects.main.css('overflow-x', 'scroll');
+							// Show article.
+								setTimeout(function() {
+
+									// Hide current article.
+										$currentArticle.hide();
+
+									// Show article.
+										$article.show();
+
+									// Activate article.
+										setTimeout(function() {
+
+											$article.addClass('active');
+
+											// Window stuff.
+												$window
+													.scrollTop(0)
+													.triggerHandler('resize.flexbox-fix');
+
+											// Unlock.
+												setTimeout(function() {
+													locked = false;
+												}, delay);
+
+										}, 25);
+
+								}, delay);
+
+						}
+
+					// Otherwise, handle as normal.
 						else {
 
-							var scrollHandler = function(e) {
-								var	delta = (e.detail ? e.detail * -10 : e.wheelDelta) * _.settings.scrollFactor;
-								_.objects.main.scrollLeft( _.objects.main.scrollLeft() - delta );
-								$SZ._parallelism_update();
-								e.preventDefault();
-								e.stopPropagation();
-							};
+							// Mark as visible.
+								$body
+									.addClass('is-article-visible');
 
-							var st;
+							// Show article.
+								setTimeout(function() {
 
-							if (_.settings.scrollWheelTarget == 'reel')
-								st = _.objects.main[0];
-							else
-								st = _.objects.window[0];
+									// Hide header, footer.
+										$header.hide();
+										$footer.hide();
 
-							st.addEventListener('DOMMouseScroll', scrollHandler, false);
-							st.addEventListener('mousewheel', scrollHandler, false);
+									// Show main, article.
+										$main.show();
+										$article.show();
 
-						}
+									// Activate article.
+										setTimeout(function() {
 
-						if (_.settings.resetScroll)
-							window.setTimeout(function() {
-								_.objects.main.scrollLeft(0);
-							}, 0);
+											$article.addClass('active');
 
-					// Scroll Zones.
-						if (!_.isTouch && _.settings.useScrollZones) {
+											// Window stuff.
+												$window
+													.scrollTop(0)
+													.triggerHandler('resize.flexbox-fix');
 
-							_.objects.body.append('<div class="SZRight" style="right: 0;" />');
-							_.objects.body.append('<div class="SZLeft" style="left: 0;" />');
+											// Unlock.
+												setTimeout(function() {
+													locked = false;
+												}, delay);
 
-							$SZLeft = _.objects.body.children('.SZLeft');
-							$SZRight = _.objects.body.children('.SZRight');
-							$SZ = $SZLeft.add($SZRight);
+										}, 25);
 
-							$SZ
-								.css('position', 'fixed')
-								.css('width', _.settings.scrollZoneWidth)
-								.css('height', 100)
-								.css('z-index', 100)
-								.css('background', 'rgba(255,255,255,0)') // Required due to a weird IE bug (affects <=10)
-								.css('top', 0);
-
-							$SZ._parallelism_update = function() {
-
-								if (_.objects.main.scrollLeft() == 0)
-									$SZLeft.hide();
-								else
-									$SZLeft.show();
-
-								if (_.objects.main.scrollLeft() + $(window).width() >= _.objects.reel.outerWidth())
-									$SZRight.hide();
-								else
-									$SZRight.show();
-
-							};
-
-							$SZRight.bind('mouseenter', function(e) {
-
-								SZIntervalId = window.setInterval(function() {
-									_.objects.main.scrollLeft( _.objects.main.scrollLeft() + (_.settings.scrollZoneAmount * _.settings.scrollFactor) );
-									$SZ._parallelism_update();
-								}, _.settings.scrollZoneDelay);
-								return false;
-
-							});
-
-							$SZLeft.bind('mouseenter', function(e) {
-
-								SZIntervalId = window.setInterval(function() {
-									_.objects.main.scrollLeft( _.objects.main.scrollLeft() - (_.settings.scrollZoneAmount * _.settings.scrollFactor) );
-									$SZ._parallelism_update();
-								}, _.settings.scrollZoneDelay);
-								return false;
-
-							});
-
-							$SZ.bind('mouseleave', function(e) {
-								window.clearInterval(SZIntervalId);
-							});
-
-						}
-						else
-							$SZ._parallelism_update = function() {};
-
-					// Scroll Keys.
-						if (_.settings.useScrollKeys) {
-
-							_.objects.window.keydown(function(e) {
-								if ($('.poptrox-popup').is(':visible'))
-									return;
-
-								switch (e.keyCode)
-								{
-									case 39:
-										window.clearInterval(SZIntervalId);
-										_.objects.main.scrollLeft( _.objects.main.scrollLeft() + (_.settings.scrollKeyAmount * _.settings.scrollFactor) );
-										$SZ._parallelism_update();
-										return false;
-
-									case 37:
-										window.clearInterval(SZIntervalId);
-										_.objects.main.scrollLeft( _.objects.main.scrollLeft() - (_.settings.scrollKeyAmount * _.settings.scrollFactor) );
-										$SZ._parallelism_update();
-										return false;
-
-									default:
-										break;
-								}
-							});
+								}, delay);
 
 						}
 
-				// Poptrox.
-					_.objects.reel.poptrox({
-						onPopupClose: (_.settings.useBlurFilter ? (function() { _.objects.wrapper.removeClass('overlayed'); }) : null),
-						onPopupOpen: (_.settings.useBlurFilter ? (function() { _.objects.wrapper.addClass('overlayed'); }) : null),
-						overlayColor: _.settings.popupOverlayColor,
-						overlayOpacity: _.settings.popupOverlayOpacity,
-						popupCloserText: '',
-						popupLoaderText: '',
-						selector: '.thumb a.image',
-						usePopupCaption: true,
-						usePopupCloser: false,
-						usePopupDefaultStyling: false,
-						usePopupNav: true
-					});
+				};
 
-				// Trigger resize event.
-					_.objects.window.trigger('resize');
+				$main._hide = function(addState) {
 
-			},
+					var $article = $main_articles.filter('.active');
 
-		// Initializes mobile mode.
-			initMobile: function() {
+					// Article not visible? Bail.
+						if (!$body.hasClass('is-article-visible'))
+							return;
 
-				// Auto styling?
-					if (_.settings.autoStyleMobile) {
+					// Add state?
+						if (typeof addState != 'undefined'
+						&&	addState === true)
+							history.pushState(null, null, '#');
 
-						// Items.
-							_.objects.items
-								.css('border', 'solid ' + Math.ceil(_.settings.padding / 2) + 'px ' + _.settings.paddingColor);
+					// Handle lock.
 
-							_.objects.items.filter('.thumb')
-								.css('margin-top', (-1 * Math.ceil(_.settings.padding / 2)) + 'px')
-								.filter(':nth-child(2n)')
-									.css('border-right', 0);
+						// Already locked? Speed through "hide" steps w/o delays.
+							if (locked) {
 
-					}
+								// Mark as switching.
+									$body.addClass('is-switching');
 
-				// Items.
-					_.objects.items.each(function() {
+								// Deactivate article.
+									$article.removeClass('active');
 
-						var $item = $(this), $img = $item.find('img');
+								// Hide article, main.
+									$article.hide();
+									$main.hide();
 
-						$img
-							.css('opacity', 0);
+								// Show footer, header.
+									$footer.show();
+									$header.show();
 
-						$item
-							.css('background-image', 'url("' + $img.attr('src') + '")')
-							.css('background-position', 'center center')
-							.css('background-size', 'cover');
+								// Unmark as visible.
+									$body.removeClass('is-article-visible');
 
+								// Unlock.
+									locked = false;
 
-					});
+								// Unmark as switching.
+									$body.removeClass('is-switching');
 
-				// Poptrox.
-					_.objects.reel.poptrox({
-						onPopupClose: (_.settings.useBlurFilter ? (function() { _.objects.wrapper.removeClass('overlayed'); }) : null),
-						onPopupOpen: (_.settings.useBlurFilter ? (function() { _.objects.wrapper.addClass('overlayed'); }) : null),
-						overlayColor: _.settings.popupOverlayColor,
-						overlayOpacity: _.settings.popupOverlayOpacity,
-						popupSpeed: 0,
-						selector: '.thumb a.image',
-						useBodyOverflow: false,
-						usePopupCaption: false,
-						usePopupCloser: false,
-						usePopupDefaultStyling: false,
-						usePopupLoader: false,
-						usePopupNav: false,
-						windowMargin: 0
-					});
+								// Window stuff.
+									$window
+										.scrollTop(0)
+										.triggerHandler('resize.flexbox-fix');
 
-			},
+								return;
 
-		// Main init method
-			init: function() {
-
-				// Skel.
-					skel
-						.breakpoints({
-							desktop: '(min-width: 737px)',
-							mobile: '(max-width: 736px)'
-						})
-						.viewport({
-							breakpoints: {
-								desktop: {
-									width: 1200,
-									scalable: false
-								}
 							}
-						});
 
-					_.isTouch = skel.vars.touch;
-					_.IEVersion = skel.vars.IEVersion;
+						// Lock.
+							locked = true;
 
-				// jQuery.
-					$.fn.h5u_xcss = function(k, v) {
-						return $(this)
-							.css('-webkit-' + k, v)
-							.css('-moz-' + k, v)
-							.css('-o-' + k, v)
-							.css('-ms-' + k, v)
-							.css(k, v);
-					};
+					// Deactivate article.
+						$article.removeClass('active');
 
-				$(function() {
+					// Hide article.
+						setTimeout(function() {
 
-					// Objects.
-						_.objects.window = $(window),
-						_.objects.wrapper = $('#wrapper'),
-						_.objects.body = $('body'),
-						_.objects.main = $('#main'),
-						_.objects.reel = $('#reel'),
-						_.objects.items = _.objects.main.find('.item');
+							// Hide article, main.
+								$article.hide();
+								$main.hide();
 
-					// Mode.
-						_.objects.window.on('load', function() {
+							// Show footer, header.
+								$footer.show();
+								$header.show();
 
-							skel
-								.on('+desktop', function() {
-									_.initDesktop();
-								})
-								.on('+mobile', function() {
-									_.initMobile();
-								})
-								.on('-desktop -mobile', function() {
-									window.setTimeout(function() {
-										location.reload(true);
-									}, 50);
-								});
+							// Unmark as visible.
+								setTimeout(function() {
 
+									$body.removeClass('is-article-visible');
+
+									// Window stuff.
+										$window
+											.scrollTop(0)
+											.triggerHandler('resize.flexbox-fix');
+
+									// Unlock.
+										setTimeout(function() {
+											locked = false;
+										}, delay);
+
+								}, 25);
+
+						}, delay);
+
+
+				};
+
+			// Articles.
+				$main_articles.each(function() {
+
+					var $this = $(this);
+
+					// Close.
+						$('<div class="close">Close</div>')
+							.appendTo($this)
+							.on('click', function() {
+								location.hash = '';
+							});
+
+					// Prevent clicks from inside article from bubbling.
+						$this.on('click', function(event) {
+							event.stopPropagation();
 						});
 
 				});
 
-			}
+			// Events.
+				$body.on('click', function(event) {
 
-}; return _; })(jQuery);
+					// Article visible? Hide.
+						if ($body.hasClass('is-article-visible'))
+							$main._hide(true);
 
-parallelism.init();
+				});
+
+				$window.on('keyup', function(event) {
+
+					switch (event.keyCode) {
+
+						case 27:
+
+							// Article visible? Hide.
+								if ($body.hasClass('is-article-visible'))
+									$main._hide(true);
+
+							break;
+
+						default:
+							break;
+
+					}
+
+				});
+
+				$window.on('hashchange', function(event) {
+
+					// Empty hash?
+						if (location.hash == ''
+						||	location.hash == '#') {
+
+							// Prevent default.
+								event.preventDefault();
+								event.stopPropagation();
+
+							// Hide.
+								$main._hide();
+
+						}
+
+					// Otherwise, check for a matching article.
+						else if ($main_articles.filter(location.hash).length > 0) {
+
+							// Prevent default.
+								event.preventDefault();
+								event.stopPropagation();
+
+							// Show article.
+								$main._show(location.hash.substr(1));
+
+						}
+
+				});
+
+			// Scroll restoration.
+			// This prevents the page from scrolling back to the top on a hashchange.
+				if ('scrollRestoration' in history)
+					history.scrollRestoration = 'manual';
+				else {
+
+					var	oldScrollPos = 0,
+						scrollPos = 0,
+						$htmlbody = $('html,body');
+
+					$window
+						.on('scroll', function() {
+
+							oldScrollPos = scrollPos;
+							scrollPos = $htmlbody.scrollTop();
+
+						})
+						.on('hashchange', function() {
+							$window.scrollTop(oldScrollPos);
+						});
+
+				}
+
+			// Initialize.
+
+				// Hide main, articles.
+					$main.hide();
+					$main_articles.hide();
+
+				// Initial article.
+					if (location.hash != ''
+					&&	location.hash != '#')
+						$window.on('load', function() {
+							$main._show(location.hash.substr(1), true);
+						});
+
+	});
+
+})(jQuery);
