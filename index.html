@@ -15,6 +15,11 @@
 
   gtag('config', 'UA-152047529-1');
 </script>
+<script>
+		function novedad() {
+				window.open("#novedad", "_top");
+		}
+</script>
 
 		<title>Janokis</title>
 		<meta charset="utf-8" />
@@ -25,13 +30,14 @@
 <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 	</head>
+	<!--<body onload="novedad()">!-->
 	<body>
-
 		<!-- Wrapper -->
 			<div id="wrapper">
 
 				<!-- Header -->
 					<header id="header">
+
 						<!-- <div class="logo">
 							<span class="icon fa-circle"></span>
 						</div>-->
@@ -56,6 +62,12 @@
 				<!-- Main -->
 					<div id="main">
 
+								<article id="novedad" class="is.article.visible">
+									<h3><i>Próximo encuentro</i><i class="fas fa-star"></i></h3>
+									<h1 class="field half first">Ecología Sonora</h1>
+									<h2>Apuntate!</h2>
+									<a href="#">Continuar al sitio</a>
+								</article>
 						<!-- Cursos -->
 							<article id="propuestas" style="background-color:rgba(27, 31, 34, 0.1);">
 								<h2 class="major">Propuestas</h2>
@@ -373,7 +385,7 @@ e interés personal hasta el mercado.</code></pre>
 								<p>Has recibido un descuento del 10% en tu próxima sesión!
 									Haz click en <i>Activar</i> para completar la acción. Recuerda introducir tus datos para ponernos en contacto!</p>
 
-								<form method="post" action=https://formspree.io/alan.janowski@gmail.com>
+								<form method="post" action=https://formspree.io/alan.janowski@gmail.com data-asunto="10% OFF">
 									<div class="field">
 										<label for="name">Nombre y Apellido</label>
 										<input type="text" name="name" id="name" />
