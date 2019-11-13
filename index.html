@@ -385,7 +385,7 @@ e interés personal hasta el mercado.</code></pre>
 								<p>Has recibido un descuento del 10% en tu próxima sesión!
 									Haz click en <i>Activar</i> para completar la acción. Recuerda introducir tus datos para ponernos en contacto!</p>
 
-								<form method="post" action=https://formspree.io/alan.janowski@gmail.com data-asunto="10% OFF">
+								<form method="post" action=https://formspree.io/alan.janowski@gmail.com>
 									<div class="field">
 										<label for="name">Nombre y Apellido</label>
 										<input type="text" name="name" id="name" />
@@ -408,13 +408,15 @@ e interés personal hasta el mercado.</code></pre>
 												<option value="Coaching">Coaching</option>
 											</select>
 										</div>
+										<div class="field" style="display: none;">
+											<label for="asunto">Asunto</label>
+											<input type="text" name="asunto" id="asunto" data-asunto="10% OFF"/>
+										</div>
 									</div>
-									<div class="field half first">
-										<input type="checkbox" id="demo-human" name="demo-human" unchecked>
-										<label for="demo-human">No soy un robot</label>
-									</div>
-									<div class="field half"><ul class="actions">
-										<li><input type="submit" value="Activar" class="special" data-asunto="Promo 10%" /></a></li>
+
+									<div position="right">
+										<ul class="actions">
+										<li><input type="submit" value="Activar" class="special" /></a></li>
 										<!--<li><input type="reset" value="Reset" /></li>-->
 									</ul></div>
 								</form>
