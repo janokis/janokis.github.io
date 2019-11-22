@@ -1,6 +1,6 @@
 (function($) {
 
-  $('a[href="#contacto"]').on('click', function() {
+  $('a[href="#reserva"]').on('click', function() {
     var $link = $(this);
     var asunto = $link.data('asunto');
 
