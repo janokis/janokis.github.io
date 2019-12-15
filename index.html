@@ -16,10 +16,19 @@
   gtag('config', 'UA-152047529-1');
 </script>
 <script>
+		var once = function() {
+			if(once.done) return;
+    console.log('Doing this once!');
+    once.done = true;
+		};
+
+once(); once();
 		function novedad() {
-				window.open("#novedad", "_top");
+				window.open("#regala", "_top");
 		}
 </script>
+
+
 
 
 		<title>Janokis</title>
@@ -31,8 +40,8 @@
 <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 	</head>
-	<!--<body onload="novedad()">!-->
-	<body>
+	<body onload="novedad()">
+
 		<!-- Wrapper -->
 			<div id="wrapper">
 
@@ -79,6 +88,10 @@
 									<p>¿Cómo podemos habitar concientemente nuestro mundo sonoro, aprovechando toda
 										la información que este provee, y dejar de padecer la inconciencia?
 									</p>
+									<div class="my-rating-4" data-rating="2.5">
+
+									</div>
+
 									<a href="#">Continuar al sitio</a>
 								</article>
 						<!-- Cursos -->
@@ -97,7 +110,11 @@
 											En el espacio de Coaching generamos un diálogo para organizar nuestra mente en función de nuestro sentir.
 										<li>Duración: 2 horas</li>
 									</p>
-								<a href="#reserva" data-asunto="Armonización">Pedir sesión / más información</a>.</p>
+								<ul class="actions">
+									<li><a href="#reserva" class="button" data-asunto="Armonización">Pedir sesión / más información</a></li>
+									<li><a href="#regala" class="button special" data-asunto="Armonización" style="background-image:url(images/bg_prueba.png);background-size:cover;">Regala una sesión!</a></li>
+								</ul>
+
 								<hr />
 								<span class="image main"><img src="images/Masaje-01-web.jpg" alt="" /></span>
 								 	<h2>Masaje</h2>
@@ -106,10 +123,12 @@
 										<li>Thai: Presión de puntos energéticos, sin aceites, con ropa y variaciones de postura.</li>
 										<li>Relajante: Masaje con aceites herbales aromáticos</li>
 										<br><p>Ambos son masajes de pies a cabeza, atendiendo necesidades específicas.
-										<li>Duración: 1 hora</li>
+										<li>Duración: 1:30 horas</li>
 									</p>
-								<a href="#reserva" data-asunto="Masaje">Pedir sesión / más información</a>.</p>
-								<hr />
+									<ul class="actions">
+										<li><a href="#reserva" class="button" data-asunto="Masaje">Pedir sesión / más información</a></li>
+										<li><a href="#regala" class="button special" data-asunto="Masaje" style="background-image:url(images/bg_prueba.png);background-size:cover;">Regala una sesión!</a></li>
+									</ul>								<hr />
 								<span class="image main"><img src="images/Reiki-01-web.jpg" alt="" /></span>
 								 	<h2>Reiki</h2>
 									<h3>Sanación energética</h3>
@@ -117,8 +136,10 @@
 										<li>Con ropa, en un ambiente confortable, música y aromas relajantes.</li>
 										<br><li>Duración: 1 hora</li>
 									</p>
-								<a href="#reserva" data-asunto="Reiki">Pedir sesión / más información</a>.</p>
-								<hr />
+									<ul class="actions">
+										<li><a href="#reserva" class="button" data-asunto="Reiki">Pedir sesión / más información</a></li>
+										<li><a href="#regala" class="button special" data-asunto="Reiki" style="background-image:url(images/bg_prueba.png);background-size:cover;">Regala una sesión!</a></li>
+									</ul>								<hr />
 								<span class="image main"><img src="images/Coach-01-web.jpg" alt="" /></span>
 								 	<h2>Coaching</h2>
 									<h3>Diálogo</h3>
@@ -126,8 +147,10 @@
 										<li>Recursos creativos y de meditación.</li>
 										<br><li>Duración: 1 hora</li>
 									</p>
-								<a href="#reserva" data-asunto="Coaching">Pedir sesión / más información</a>.</p>
-
+									<ul class="actions">
+										<li><a href="#reserva" class="button" data-asunto="Coaching">Pedir sesión / más información</a></li>
+										<li><a href="#regala" class="button special" data-asunto="Coaching" style="background-image:url(images/bg_prueba.png);background-size:cover;">Regala una sesión!</a></li>
+									</ul>
 
 
 
@@ -451,6 +474,52 @@ e interés personal hasta el mercado.</code></pre>
 									</div>
 									<ul class="actions">
 										<li><input type="submit" value="Activar" class="special" /></a></li>
+									</ul>
+								</form>
+
+							</article>
+
+						<!-- REGALA -->
+							<article id="regala" style="background-image:url(images/bg_prueba.png);background-size:cover;text-align:center" class="is.article.visible">
+								<h2>¡Regala Bienestar!</h2>
+								<p>¿Qué mejor que recibir un vale por <br/ >
+									una sesión de <b>Masaje, </b><b>Reiki, </b>o <b>Coaching</b> que te haga sentir bien?<br/ >
+									Además, te dirán "<i>si fuera por mí, no me decidiría a hacerlo, pero con esto...</i>"</p>
+
+								<form method="post" action=https://formspree.io/alan.janowski@gmail.com>
+									<div class="field">
+										<h3 label for="category">Elige tu regalo <a href="#propuestas"><i>Ver opciones</i></a></label></h3>
+										<div class="select-wrapper">
+											<select name="category" id="category">
+												<option value="Selecciona"><i>Selecciona</i></option>
+												<option value="Armonizacion">Armonización · Masaje + Reiki + Coaching · 2hs · 85€</option>
+												<option value="Masaje">Masaje · Thai o Relajante · 1:30hs · 60€</option>
+												<option value="Reiki">Reiki · 1h · 50€</option>
+												<option value="Coaching">Coaching · 1h · 50€</option>
+											</select>
+										</div>
+									</div>
+									<h4>Completa los campos para recibir el pedido</h4>
+									<div class="field">
+										<label for="name">Tu nombre</label>
+										<input type="text" name="name" id="name" />
+									</div>
+									<div class="field half first">
+										<label for="email">Mail</label>
+										<input type="text" name="email" id="email" />
+									</div>
+									<div class="field half">
+										<label for="phone">Teléfono</label>
+										<input type="text" name="Teléfono" id="phone" />
+									</div>
+
+										<div class="field" style="display: none;">
+											<label for="asunto">Asunto</label>
+											<input type="text" name="asunto" id="asunto" value="Regala"></i>
+										</div>
+
+									<ul class="actions">
+										<li><input type="submit" value="Completar el pedido" class="special" /></a></li>
 									</ul>
 								</form>
 
