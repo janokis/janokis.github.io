@@ -1017,6 +1017,7 @@
 			font-weight: 600;
 		}
 
+
 		input[type="submit"].disabled, input[type="submit"]:disabled,
 		input[type="reset"].disabled,
 		input[type="reset"]:disabled,
@@ -1593,3 +1594,26 @@
 		body.is-loading #footer {
 			opacity: 0;
 		}
+
+		/* Container holding the image and the text */
+	.container {
+	  position: relative;
+	  text-align: center;
+		height: 8rem;
+		max-height: 8rem;
+		width: auto;
+		background-image: url("../../images/bg_prueba.png");
+		background-position: center;
+		overflow: hidden;
+		background-size: cover;
+
+	}
+
+
+	/* Centered text */
+	.centered {
+	  position: absolute;
+	  top: 50%;
+	  left: 50%;
+	  transform: translate(-50%, -50%);
+	}
